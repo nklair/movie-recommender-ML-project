@@ -14,6 +14,14 @@ def organize_data_by_user(filename, user_dict):
 
 				user_dict[clean[0]][current_movie] = int(clean[1])
 
+def average_user_ratings(user_dict):
+	for user in user_dict.keys():
+		sum_rating = 0
+		for movie in user_dict[user].keys():
+			sum_rating += user_dict[user][movie]
+		average_rating = float(sum_rating) / float(len(user_dict[user]))
+		user_dict[user]["average"] = average_rating
+
 def organize_data_by_movie(filename, movie_dict):
 	with open(filename, "r") as file:
 		current_movie = ""
