@@ -59,17 +59,17 @@ def pickle_open(filename):
 if __name__ == "__main__":
 	users = {}
 	movies = {}
-	#organize_data_by_user("./netflix-prize-data/combined_data_1.txt", users)
-	#organize_data_by_user("./netflix-prize-data/combined_data_2.txt", users)
-	#organize_data_by_user("./netflix-prize-data/combined_data_3.txt", users)
-	#organize_data_by_user("./netflix-prize-data/combined_data_4.txt", users)
-	#pickle_save(users, "user_movie_ratings.pickle")
+	organize_data_by_user("./netflix-prize-data/combined_data_1.txt", users)
+	organize_data_by_user("./netflix-prize-data/combined_data_2.txt", users)
+	organize_data_by_user("./netflix-prize-data/combined_data_3.txt", users)
+	organize_data_by_user("./netflix-prize-data/combined_data_4.txt", users)
+	pickle_save(users, "user_movie_ratings.pickle")
 
-	#organize_data_by_movie("./netflix-prize-data/combined_data_1.txt", movies)
-	#organize_data_by_movie("./netflix-prize-data/combined_data_2.txt", movies)
-	#organize_data_by_movie("./netflix-prize-data/combined_data_3.txt", movies)
-	#organize_data_by_movie("./netflix-prize-data/combined_data_4.txt", movies)
-	#pickle_save(movies, "movie_user_ratings.pickle")
+	organize_data_by_movie("./netflix-prize-data/combined_data_1.txt", movies)
+	organize_data_by_movie("./netflix-prize-data/combined_data_2.txt", movies)
+	organize_data_by_movie("./netflix-prize-data/combined_data_3.txt", movies)
+	organize_data_by_movie("./netflix-prize-data/combined_data_4.txt", movies)
+	pickle_save(movies, "movie_user_ratings.pickle")
 
 	instance = []
 	#create_csv("./netflix-prize-data/combined_data_1.txt", instance)
