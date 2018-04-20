@@ -12,25 +12,17 @@ class Sim_Matrix:
 		l1 = list(movie_dict[movie1].keys())
 		l2 = list(movie_dict[movie2].keys())
 		merged = list(set(l1).intersection(l2))
-		for user in merged:
-			user_info = {}
-			user_info["movie1"] = movie_dict[movie1][user]
-			user_info["movie2"] = movie_dict[movie2][user]
-			user_info["average"] = user_dict[user]["average"]
-
-			same_user_info.append(user_info)
 		
-		#for user in movie_dict[movie1].keys():
-		#	if user in movie_dict[movie2].keys():
-		#		user_info = {}
-		#		user_info["movie1"] = movie_dict[movie1][user]
-		#		user_info["movie2"] = movie_dict[movie2][user]
-		#		user_info["average"] = user_dict[user]["average"]
-	
-		#		same_user_info.append(user_info)
-	
-		#if len(same_user_info) >= 5:
-		if len(same_user_info) >= 1:
+		#if len(merged) >= 5:
+		if len(merged) >= 1:
+			for user in merged:
+				user_info = {}
+				user_info["movie1"] = movie_dict[movie1][user]
+				user_info["movie2"] = movie_dict[movie2][user]
+				user_info["average"] = user_dict[user]["average"]
+
+				same_user_info.append(user_info)
+		
 			numerator = 0
 			denom_part1 = 0
 			denom_part2 = 0
@@ -50,7 +42,7 @@ class Sim_Matrix:
 		movie_list = list(movie_dict.keys())
 		for i in range(start, end):
 			for j in range(i, len(movie_list)):
-				print(i, j)
+				#print(i, j)
 				sim = self.similarity(movie_list[i], movie_list[j], movie_dict, user_dict)
 				if sim != 0:
 					self.similarity_dict[movie_list[i]][movie_list[j]] = sim
@@ -73,6 +65,7 @@ class Sim_Matrix:
 		#print("all threads joined")
 		
 def weighted_sum(user_id, movie_id, user_dict, similarity_matrix, similarity_threshhold=0.5):
+	
 	# Find all similar movies for that movie
 	similar_movies = set()
 	for other_movie_id in similarity_matrix[movie_id].keys():
@@ -81,18 +74,18 @@ def weighted_sum(user_id, movie_id, user_dict, similarity_matrix, similarity_thr
 			similar_movies.add(other_movie_id)
 
 	# Find all similar items which the user has rated
-	user_rated_similar_movies = similar_movies & user_dict[user_id].keys()
+	user_rated_similar_movies = similar_movies & list(user_dict[user_id].keys())
 
 	weighted_user_rating_sum = 0
 	sum_of_similarities = 0
 	for rated_movie_id in user_rated_similar_movies:
-		similarity = similarity_matrix[movie_id][rated_movie]
-		rating = user_dict[user_id][rated_movie]
+		similarity = similarity_matrix[movie_id][rated_movie_id]
+		rating = user_dict[user_id][rated_movie_id]
 
 		weighted_user_rating_sum += similarity * rating
 		sum_of_similarities += abs(similarity)
 
-	return weighted_user_rating_sum / sim_of_similarities
+	return weighted_user_rating_sum / sum_of_similarities
 
 def pickle_open(filename):
 	f = open(filename, "rb")
@@ -100,10 +93,22 @@ def pickle_open(filename):
 
 if __name__ == "__main__":
 	users = pickle_open("user_movie_ratings.pickle")
-	movies = pickle_open("movie_user_ratings.pickle")
+	
+	#movies = pickle_open("movie_user_ratings.pickle")
+	movies = {}
+	for i in range(9):
+		ratings = [line.rstrip('\n') for line in open('fold_'+str(i)+'.csv')]
+		for rating in ratings:
+			split_rating = rating.split(',')
+			if split_rating[1] not in movies.keys():
+				movies[split_rating[1]] = {}
+			movies[split_rating[1]][split_rating[0]] = int(split_rating[2])
+
 	sim_matrix = Sim_Matrix(movies)
 	sim_matrix.create_similarity_matrix(movies, users)
-	predicted_rating = weighted_sum(1932640, 14574, users, sim_matrix.similarity_dict)
-	print("Predicted rating for user 1932640 and movie 14574 should be 2, it is: ")
-	print(predicted_rating)
-	#1932640,14574,2
+	
+	test_data = [line.rstrip('\n') for line in open('fold_9.csv')]
+	for line in test_data:
+		split_line = line.split(',')
+		predicted_rating = weighted_sum(split_line[0], split_line[1], users, sim_matrix.similarity_dict)
+		print("Predicted rating for user {} and movie {} should be {}, it is: {}".format(split_line[1], split_line[0], split_line[2], predicted_rating))
