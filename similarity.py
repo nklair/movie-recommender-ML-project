@@ -63,18 +63,24 @@ class Sim_Matrix:
 		for thread in threads:
 			thread.join()
 		#print("all threads joined")
+	
+		try:
+			pickle_save(self.similarity_dict, "../matrix_fold_10.pickle")
+		except:
+			pass
 		
 def weighted_sum(user_id, movie_id, user_dict, similarity_matrix, similarity_threshhold=0.5):
 	
 	# Find all similar movies for that movie
-	similar_movies = set()
+	similar_movies = []
 	for other_movie_id in similarity_matrix[movie_id].keys():
 		similarity = similarity_matrix[movie_id][other_movie_id]
 		if similarity is not None and similarity > similarity_threshhold:
-			similar_movies.add(other_movie_id)
+			similar_movies.append(other_movie_id)
 
 	# Find all similar items which the user has rated
-	user_rated_similar_movies = similar_movies & list(user_dict[user_id].keys())
+	user_movies = list(user_dict[user_id].keys())
+	user_rated_similar_movies = list(set(similar_movies).intersection(user_movies))
 
 	weighted_user_rating_sum = 0
 	sum_of_similarities = 0
@@ -87,17 +93,21 @@ def weighted_sum(user_id, movie_id, user_dict, similarity_matrix, similarity_thr
 
 	return weighted_user_rating_sum / sum_of_similarities
 
+def pickle_save(dict_to_save, filename):
+	with open(filename, "wb") as f:
+		pickle.dump(dict_to_save, f, pickle.HIGHEST_PROTOCOL)
+
 def pickle_open(filename):
 	f = open(filename, "rb")
 	return pickle.load(f)
 
 if __name__ == "__main__":
-	users = pickle_open("user_movie_ratings.pickle")
+	users = pickle_open("../user_movie_ratings.pickle")
 	
 	#movies = pickle_open("movie_user_ratings.pickle")
 	movies = {}
 	for i in range(9):
-		ratings = [line.rstrip('\n') for line in open('fold_'+str(i)+'.csv')]
+		ratings = [line.rstrip('\n') for line in open('../folds/fold_'+str(i)+'.csv')]
 		for rating in ratings:
 			split_rating = rating.split(',')
 			if split_rating[1] not in movies.keys():
@@ -106,9 +116,13 @@ if __name__ == "__main__":
 
 	sim_matrix = Sim_Matrix(movies)
 	sim_matrix.create_similarity_matrix(movies, users)
-	
-	test_data = [line.rstrip('\n') for line in open('fold_9.csv')]
+
+	f = open("../fold_10_results.txt", w)
+	test_data = [line.rstrip('\n') for line in open('../folds/fold_9.csv')]
 	for line in test_data:
 		split_line = line.split(',')
 		predicted_rating = weighted_sum(split_line[0], split_line[1], users, sim_matrix.similarity_dict)
-		print("Predicted rating for user {} and movie {} should be {}, it is: {}".format(split_line[1], split_line[0], split_line[2], predicted_rating))
+		
+		# user, movie, rating, prediction
+		f.write("u{},m{},{},{}\n".format(split_line[1], split_line[0], split_line[2], predicted_rating))
+	f.close()
