@@ -6,6 +6,9 @@ class Sim_Matrix:
 		self.similarity_dict = {}
 		for movie in movie_dict.keys():
 			self.similarity_dict[movie] = {}
+	
+	def set_dict_from_pickle(self, f):
+		self.similarity_dict = pickle_open(f)
 
 	def similarity(self, movie1, movie2, movie_dict, user_dict):
 		same_user_info = []
@@ -65,7 +68,7 @@ class Sim_Matrix:
 		#print("all threads joined")
 	
 		try:
-			pickle_save(self.similarity_dict, "../matrix_fold_10.pickle")
+			pickle_save(self.similarity_dict, "../matrix_pickles/matrix_fold_4.pickle")
 		except:
 			pass
 		
@@ -106,7 +109,8 @@ if __name__ == "__main__":
 	
 	#movies = pickle_open("movie_user_ratings.pickle")
 	movies = {}
-	for i in range(9):
+	training_folds = [1,2,4,5,6,7,8,9,10]
+	for i in training_folds:
 		ratings = [line.rstrip('\n') for line in open('../folds/fold_'+str(i)+'.csv')]
 		for rating in ratings:
 			split_rating = rating.split(',')
@@ -115,10 +119,11 @@ if __name__ == "__main__":
 			movies[split_rating[1]][split_rating[0]] = int(split_rating[2])
 
 	sim_matrix = Sim_Matrix(movies)
+	#sim_matrix.set_dict_from_pickle("../matrix_fold_10.pickle")
 	sim_matrix.create_similarity_matrix(movies, users)
-
-	f = open("../fold_10_results.txt", w)
-	test_data = [line.rstrip('\n') for line in open('../folds/fold_9.csv')]
+	
+	f = open("../results/fold_4_results.csv", "w")
+	test_data = [line.rstrip('\n') for line in open('../folds/fold_3.csv')]
 	for line in test_data:
 		split_line = line.split(',')
 		predicted_rating = weighted_sum(split_line[0], split_line[1], users, sim_matrix.similarity_dict)
