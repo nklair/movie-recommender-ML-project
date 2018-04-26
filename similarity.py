@@ -20,6 +20,7 @@ class Sim_Matrix:
 				user_info["movie1"] = movie_dict[movie1][user]
 				user_info["movie2"] = movie_dict[movie2][user]
 				user_info["average"] = user_dict[user]["average"]
+				user_info["num_reviews"] = len(user_dict[user])
 
 				same_user_info.append(user_info)
 		
@@ -27,9 +28,11 @@ class Sim_Matrix:
 			denom_part1 = 0
 			denom_part2 = 0
 			for user in same_user_info:
-				numerator += (user["movie1"] - user["average"])*(user["movie2"] - user["average"])
-				denom_part1 += (user["movie1"] - user["average"])*(user["movie1"] - user["average"])
-				denom_part2 += (user["movie2"] - user["average"])*(user["movie2"] - user["average"])
+				m1_metric = user["num_reviews"] * (user["movie1"] - user["average"])
+				m2_metric = user["num_reviews"] * (user["movie2"] - user["average"])
+				numerator += (m1_metric)*(m2_metric)
+				denom_part1 += (m1_metric)*(m1_metric)
+				denom_part2 += (m2_metric)*(m2_metric)
 	
 			denom = pow(denom_part2, .5) * pow(denom_part1, .5)
 	
